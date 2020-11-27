@@ -21,3 +21,147 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 ```
 
+**This dataset explores the evolution of the total unemployment rate from people between 15 and 74 years old in Europe.**
+
+# Loading Libraries
+
+```{r library}
+
+library(eurostat)
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(magrittr)
+library(data.table)
+library(here)
+library(countrycode)
+library(gganimate)
+library(gapminder)
+library(data.table)
+library(dplyr)
+
+```
+
+```{r query}
+query <- search_eurostat(pattern = "Unemployment rate - quarterly data, seasonally adjusted", 
+                         type = "table", fixed = FALSE)
+query[, 1:2]
+```
+
+```{r new_variables}
+
+countries <-  c("AT", "BE", "BG", "CH", "CY", "CZ", "DE", "DK", "EE", "EL", "ES", "FI", "FR", "HR","HU", "IE", "IS", "IT", "LI", "LT","LU", "LV", "MT", "NL", "NO", "PL", "PT","RO", "SE", "SI", "SK", "UK")
+
+PTandEU <-  c("PT","EU27_2020")
+
+```
+
+# Defining variables dat and dat1
+
+## dat = Every country in the EU separately
+## dat1 = Portugal vs EU
+
+```{r get}
+
+dat <- get_eurostat(id="tipsun30", time_format = "num", 
+                    filters = list (geo = countries))
+dat [1:2,]
+
+dat1<- get_eurostat(id="tipsun30", time_format = "num", 
+                    filters = list (geo = PTandEU))
+                    
+dat1 [1:2,]
+```
+
+```{r label}
+dat <- label_eurostat (dat)
+dat[1:3,]
+
+
+dat1 <- label_eurostat (dat1)
+dat1[1:3,]
+```
+
+# Clean the data  (remove columns)
+
+```{r clean_dat_dat1}
+
+setDT(dat)
+
+setDT(dat1)
+
+dat[, c("s_adj", "sex", "age", "unit"):=NULL]
+
+dat1[, c("s_adj", "sex", "age", "unit"):=NULL]
+
+setDT(dat)
+
+setDT(dat1)
+```
+
+# Evolution of unemployment rate in EU, from 1995 to Q2 of 2020
+
+## Line graph
+
+```{r eurostat_and_plots}
+
+ggplot(dat, 
+       aes(x = time, y= values, color = geo, label = geo)) + 
+  geom_line (alpha = .5) +
+  geom_text (data = dat %>% group_by(geo) %>% 
+               filter(time == max(time)),
+             size =2.6) +
+  theme(legend.position = "none") + 
+  labs(title = "Unemployment Rate in Europe from Q1 of 1995 to Q2 of 2020",
+       x= "Year", y= "%")
+
+  labs(title = 'Year: {frame_time}', x = 'Time', y = 'Percentage') +
+  transition_time(time) +
+  ease_aes('linear')
+```
+
+What about just the last 3 years?
+
+```{r var_last3years}
+last3 <- dat [time %in% c("2018.00", "2018.25", "2018.50", "2018.75", "2019.00", "2019.25", "2019.50","2019.75", "2020.00", "2020.25", "2020.50", "2020.75")]
+```
+
+
+```{r eurostat_and_plots}
+
+ggplot(last3, 
+       aes(x = time, y= values, color = geo, label = geo)) + 
+  geom_line (alpha = .5) +
+  geom_text (data = dat %>% group_by(geo) %>% 
+               filter(time == max(time)),
+             size =2.6) +
+  theme(legend.position = "none") + 
+  labs(title = "Unemployment Rate in Europe for the last 3 years",
+       x= "Year", y= "%")
+
+  labs(title = 'Year: {frame_time}', x = 'Time', y = 'Percentage') +
+  transition_time(time) +
+  ease_aes('linear')
+```
+
+**there is no data for the EU**
+
+# Unemployment Rate in Portugal
+
+```{r eurostat_and_plots}
+
+ggplot(dat1, 
+       aes(x = time, y= values, color = geo, label = geo)) + 
+  geom_line (alpha = .5) +
+  geom_text (data = dat1 %>% group_by(geo) %>% 
+               filter(time == max(time)),
+             size =2.6) +
+  theme(legend.position = "none") + 
+  labs(title = "Unemployment Rate in Portugal from Q1 of 1995 to Q3 of 2020",
+       x= "Year", y= "%")
+
+  labs(title = 'Year: {frame_time}', x = 'Time', y = 'Percentage') +
+  transition_time(time) +
+  ease_aes('linear')
+```
+
