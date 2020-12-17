@@ -127,7 +127,7 @@ last3 <- dat [time %in% c("2018.00", "2018.25", "2018.50", "2018.75", "2019.00",
 ```
 
 
-```{r eurostat_and_plots}
+```{r eurostat_and_plots1}
 
 ggplot(last3, 
        aes(x = time, y= values, color = geo, label = geo)) + 
@@ -148,7 +148,7 @@ ggplot(last3,
 
 # Unemployment Rate in Portugal
 
-```{r eurostat_and_plots}
+```{r eurostat_and_plots2}
 
 ggplot(dat1, 
        aes(x = time, y= values, color = geo, label = geo)) + 
